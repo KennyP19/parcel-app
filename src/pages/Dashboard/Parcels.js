@@ -1,25 +1,32 @@
 import { useState, useEffect } from 'react'
-import Modal from '../../components/Modal'
-import { getDocs, collection, query, where, limit, addDoc} from 'firebase/firestore'
+import {Modal, DeleteModal} from '../../components/Modal'
+import { getDocs, collection, query, where, limit, addDoc, Timestamp, doc, updateDoc, deleteDoc} from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 import app from '../../firebaseconfig'
 import { useOutletContext } from 'react-router-dom'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import QRCode from 'qrcode'
-import { getDate } from '../../functions'
+import { getParsedDate } from '../../functions'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 
 const Parcels = () => {
 	const [openModal, setOpenModal] = useState(false)
+	const [deleteModal, setDeleteModal] = useState(false)
 	const auth = getAuth(app)
 	const db = useOutletContext()
 
 	const [user, loading, error] = useAuthState(auth);
 	const [parcels, setParcels] = useState([])
 	const [newParcel, setNewParcel] = useState(null)
-	
+
+	const [parcelToUpdate, setparcelToUpdate] = useState(null)
+	const [toEdit, setToEdit] = useState(false)
+
 	const addParcel = async (recipientName, location) => {
 		const parcelRef = collection(db, 'users', user.uid, 'parcels')
-		const parcelDate = Date.now()
+		const parcelDate = new Date()
+		const timestamp = Timestamp.fromDate(parcelDate)
 		
 		const recipientEmail = await getUserData(recipientName, location)
 
@@ -28,7 +35,7 @@ const Parcels = () => {
 		addDoc(parcelRef, {
 			recipientName: recipientName,
 			location: location,
-			dateRecieved: parcelDate,
+			dateRecieved: timestamp,
 			email: recipientEmail,
 			status: 'waiting'
 		})
@@ -78,6 +85,35 @@ const Parcels = () => {
 		.catch(setNewParcel(null))
 	}
 
+	const openUpdateParcel = (parcel) => {
+		setToEdit(true)
+		setparcelToUpdate(parcel)
+		setOpenModal(true)
+	}
+
+	const updateParcel = (updatedParcel) => {
+		const parcelDoc = doc(db, 'users', user.uid, 'parcels', parcelToUpdate.id)
+
+		updateDoc(parcelDoc, updatedParcel)
+		.then(onCloseModal)
+		.catch(error => console.log(error))
+	}
+
+	const onCloseModal = () => {
+		setOpenModal(false)
+		setNewParcel(null)
+		setparcelToUpdate()
+		setToEdit(false)
+	}
+
+	const deleteParcel = (parcel) => {
+		const parcelDoc = doc(db, 'users', user.uid, 'parcels', parcel.id)
+		
+		deleteDoc(parcelDoc, parcel)
+		.then(setDeleteModal(false))
+		.catch(error => console.log(error))
+	}
+
 	useEffect(() => {
 		if (loading) return
 		if (user) {
@@ -93,7 +129,8 @@ const Parcels = () => {
 	},[loading, user, db, newParcel, error])
 	return (
 		<>
-			{openModal === true && <Modal setOpenModal={setOpenModal} modalType={'parcel'} action={addParcel}/>}
+			{openModal === true && <Modal closeModal={onCloseModal} modalType={'parcel'} action={(toEdit === false) ?  addParcel : updateParcel} data={parcelToUpdate}/>}
+			{deleteModal === true && <DeleteModal closeModal={setDeleteModal} action={deleteParcel} type={'Parcel'}/>}
 			<div className='dashboard-container'>
 				<div style={{display: 'flex', justifyContent: 'space-between'}}>
 					<div style={{fontSize: '30px', display: 'flex'}}>
@@ -126,13 +163,16 @@ const Parcels = () => {
 										<div className='item'>{parcel.location}</div>
 									</td>
 									<td>
-										<div className='item'>{getDate(parcel.dateRecieved)}</div>
+										<div className='item'>{getParsedDate(parcel.dateRecieved)}</div>
 									</td>
 									<td>
 										<div className='item'>{parcel.status}</div>
 									</td>
 									<td>
-										<div className='item'>...</div>
+										<div className='item'>
+											<button className='action-button' onClick={() => {openUpdateParcel(parcel)}}><FontAwesomeIcon icon={faEdit} size='xl'/></button>
+											<button className='action-button' onClick={() => {setDeleteModal(true)}}><FontAwesomeIcon icon={faTrashAlt} size='xl' /></button>
+										</div>
 									</td>
 								</tr>
 								)

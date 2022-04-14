@@ -270,6 +270,13 @@ th, .item{
   margin: 10rem auto;
 }
 
+.delete-modal {
+  margin: 10rem auto;
+  text-align: center;
+  padding: 10px 30px;
+  width: 300px;
+}
+
 .modal-background {
   min-height: 100%;
   display: flex;
@@ -283,7 +290,38 @@ th, .item{
 }
 
 .modal-button {
-  padding: 10px 15px;
-  margin: auto 1rem;
-  margin-top: 3rem;
+  color: black;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  opacity: 0.9;
+  border-radius: 10px;
+  background-color: white;
+  font-size: 17px;
+}
+
+.action-button {
+  background-color: white;
+  border: none;
+  padding: 0 10px;
+}
+
+.delete-button {
+  color: white;
+  background-color: red;
+}
+
+.add-button {
+  background-color: #030342;
+  color: white;
+}
+
+.dot {
+  height: 7px;
+  width: 7px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 50%;
+  display: inline-block;
 }

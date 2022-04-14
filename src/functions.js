@@ -1,15 +1,27 @@
-export function getDate(recievedDate, option = 'date') {
+export function getParsedDate(recievedDate, option = 'parcel') {
 
-	let date = new Date(recievedDate);
+    if (option === 'parcel') { 
+        let date = recievedDate.toDate();
 
-    if (option === 'date') {
         return String(date.getDate() + '/' + (date.getMonth()) + '/' + date.getFullYear() + " " + date.getHours() + ":" + (date.getMinutes()<10?'0':'') + date.getMinutes())
     }
-    else if (option == 'day'){
-        let days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        let day = days[date.getDay()]
-        return day
+    else if (option === 'stats') {
+        let date = new Date(recievedDate);
+
+        const month = date.toLocaleString('default', { month: 'short' });
+        const dateString = String(date.getDate() + ' ' + (month) + ' ' + date.getFullYear())
+
+        return dateString
     } 
+    else if (option === 'stats_timestamp') {
+        let date = recievedDate.toDate();
+
+        const month = date.toLocaleString('default', { month: 'short' });
+        const dateString = String(date.getDate() + ' ' + (month) + ' ' + date.getFullYear())
+
+        return dateString
+    }
+
 }
 
 export function getWeeklyData(date_days) {
@@ -30,45 +42,58 @@ export function getWeeklyData(date_days) {
     return daily_data
 }
 
-export function getStartDate(recievedDate) {
-    var startDate = new Date()
+// export function getStartDate(recievedDate) {
+//     var startDate = new Date()
 
-    recievedDate.forEach(element => {
-        let date = new Date(element);
+//     recievedDate.forEach(element => {
+//         let date = new Date(element);
 
-        if (date < startDate) {
-            startDate = date
-        }
-    });
+//         if (date < startDate) {
+//             startDate = date
+//         }
+//     });
 
-    return startDate
-}
+//     return startDate
+// }
 
-export function getAllWeeks() {
-    var startingDay = new Date(new Date().getFullYear(), 0, 1);
+// export function getAllWeeks() {
+//     var startingDay = new Date(new Date().getFullYear(), 0, 1);
 
-    if (startingDay.getDay() != 1) {
-        startingDay = startingDay
-    }
+//     if (startingDay.getDay() !== 1) {
+//         startingDay = startingDay
+//     }
 
-    console.log(startingDay.getDay())
+//     console.log(startingDay.getDay())
 
-}
+// }
 
 export function getDatesInRange(startDate, endDate) {
     const date = new Date(startDate.getTime());
-
-    date.setDate(date.getDate() + 1);
   
     const dates = [];
   
-    while (date < endDate) {
-        const month = date.toLocaleString('default', { month: 'short' });
-        const dateString = String(date.getDate() + ' ' + (month) + ' ' + date.getFullYear())
-        
-        dates.push(dateString);
+    while (date <= endDate) {
+        dates.push(new Date(date));
         date.setDate(date.getDate() + 1);
     }
   
     return dates;
+}
+
+export function getParcelDataInRange(datesInRange, parcelDates) {
+    const numOfParcels = {}
+
+    datesInRange.forEach(element => {
+        numOfParcels[element] = 0
+    });
+
+    parcelDates.forEach(element => {
+        if (datesInRange.includes(element)) {
+            numOfParcels[element] += 1
+        }
+    });
+
+    const result = Object.keys(numOfParcels).map((k) => numOfParcels[k])
+
+    return result
 }
