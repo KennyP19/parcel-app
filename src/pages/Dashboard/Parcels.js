@@ -22,6 +22,9 @@ const Parcels = () => {
 
 	const [parcelToUpdate, setparcelToUpdate] = useState(null)
 	const [toEdit, setToEdit] = useState(false)
+	const [searchList, setSearchList] = useState(null)
+
+	const [searchTerm, setsearchTerm] = useState('')
 
 	const addParcel = async (recipientName, location) => {
 		const parcelRef = collection(db, 'users', user.uid, 'parcels')
@@ -41,10 +44,11 @@ const Parcels = () => {
 		})
 		.then(docRef => setNewParcel({id: docRef.id, data: {recipientName: recipientName, location: location, dateRecieved: parcelDate, email: recipientEmail, status: 'waiting'}}))
 		.then(setOpenModal(false))
-
 	}
 
 	const getUserData = async(recipientName, location) => {
+
+		console.log(recipientName, location)
 
 		const recipientsRef = collection(db, 'users', user.uid, 'recipients')
 		const firstName = recipientName.split(' ')[0]
@@ -85,33 +89,60 @@ const Parcels = () => {
 		.catch(setNewParcel(null))
 	}
 
-	const openUpdateParcel = (parcel) => {
-		setToEdit(true)
-		setparcelToUpdate(parcel)
-		setOpenModal(true)
-	}
-
 	const updateParcel = (updatedParcel) => {
 		const parcelDoc = doc(db, 'users', user.uid, 'parcels', parcelToUpdate.id)
 
 		updateDoc(parcelDoc, updatedParcel)
+		.then(setNewParcel(''))
 		.then(onCloseModal)
 		.catch(error => console.log(error))
 	}
 
 	const onCloseModal = () => {
 		setOpenModal(false)
-		setNewParcel(null)
 		setparcelToUpdate()
 		setToEdit(false)
 	}
 
-	const deleteParcel = (parcel) => {
-		const parcelDoc = doc(db, 'users', user.uid, 'parcels', parcel.id)
+	const onOpenModal = () => {
+		const users = collection(db, 'users', user.uid, 'recipients')
+		if (searchList === null) {
+			getDocs(users)
+			.then((userList) => setSearchList(userList.docs.map((doc) => ({id: doc.id, ...doc.data()}))))
+			.then(setOpenModal(true))
+			.catch(error => console.log(error))
+		}
+		else {
+			setOpenModal(true)
+		}
+	}
+
+	const openUpdateParcel = (parcel) => {
+		setToEdit(true)
+		setparcelToUpdate(parcel)
+		onOpenModal()
+	}
+
+	const deleteParcel = () => {
+		const parcelDoc = doc(db, 'users', user.uid, 'parcels', parcelToUpdate.id)
 		
-		deleteDoc(parcelDoc, parcel)
+		deleteDoc(parcelDoc, parcelToUpdate)
 		.then(setDeleteModal(false))
+		.then(setNewParcel(''))
+		.then(console.log(newParcel))
 		.catch(error => console.log(error))
+	}
+
+	const onDeleteParcel = (parcel) => {
+		setDeleteModal(true)
+		setparcelToUpdate(parcel)
+	}
+
+	const filterParcels = (val) => {
+		let filteredName = val.recipientName.toLowerCase().includes(searchTerm.toLowerCase())
+		let filteredLocation = val.location.toLowerCase().includes(searchTerm.toLowerCase())
+
+		if (filteredLocation || filteredName) return val
 	}
 
 	useEffect(() => {
@@ -129,7 +160,7 @@ const Parcels = () => {
 	},[loading, user, db, newParcel, error])
 	return (
 		<>
-			{openModal === true && <Modal closeModal={onCloseModal} modalType={'parcel'} action={(toEdit === false) ?  addParcel : updateParcel} data={parcelToUpdate}/>}
+			{openModal === true && <Modal closeModal={onCloseModal} modalType={'parcel'} action={(toEdit === false) ?  addParcel : updateParcel} data={parcelToUpdate} searchList={searchList}/>}
 			{deleteModal === true && <DeleteModal closeModal={setDeleteModal} action={deleteParcel} type={'Parcel'}/>}
 			<div className='dashboard-container'>
 				<div style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -137,8 +168,8 @@ const Parcels = () => {
 						Parcels
 					</div>
 					<div style={{display: 'flex', minWidth: '250px'}}>
-						<input className='searchbar' placeholder='Search...'></input>
-						<button className='search-button' onClick={() => setOpenModal(true)}>Log New Parcel</button>
+						<input className='searchbar' placeholder='Search...' onChange={(e) => setsearchTerm(e.target.value)}></input>
+						<button className='search-button' onClick={onOpenModal}>Log New Parcel</button>
 					</div>
 				</div>
 				<div style={{marginTop: '40px', width: '100%'}}>
@@ -153,7 +184,7 @@ const Parcels = () => {
 							</tr>
 						</thead>
 						<tbody>
-							{parcels.map((parcel) => {
+							{parcels.filter(val => filterParcels(val)).map((parcel) => {
 								return (
 									<tr key={parcel.id}>
 									<td>
@@ -170,8 +201,8 @@ const Parcels = () => {
 									</td>
 									<td>
 										<div className='item'>
-											<button className='action-button' onClick={() => {openUpdateParcel(parcel)}}><FontAwesomeIcon icon={faEdit} size='xl'/></button>
-											<button className='action-button' onClick={() => {setDeleteModal(true)}}><FontAwesomeIcon icon={faTrashAlt} size='xl' /></button>
+											<button className='action-button' onClick={() => openUpdateParcel(parcel)}><FontAwesomeIcon icon={faEdit} size='xl'/></button>
+											<button className='action-button' onClick={() => onDeleteParcel(parcel)}><FontAwesomeIcon icon={faTrashAlt} size='xl' /></button>
 										</div>
 									</td>
 								</tr>

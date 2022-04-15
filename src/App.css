@@ -325,3 +325,23 @@ th, .item{
   border-radius: 50%;
   display: inline-block;
 }
+
+.search-result {
+  background-color: white;
+  z-index: 3;
+  position: absolute;
+  width: 300px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  max-height: 77px;
+  overflow-y: auto;
+}
+
+.filter-item {
+  padding: 10px 10px;
+  font-size: 15px;
+}
+
+.filter-item:hover {
+  background-color: lightgray;
+  cursor: pointer;
+}

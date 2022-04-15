@@ -28,7 +28,6 @@ const Users = () => {
 	
 	
 	const addUser = async (email, firstname, lastname, location) => {
-
 		const recipientsRef = collection(db, 'users', user.uid, 'recipients')
 		try {
 			await setDoc(doc(recipientsRef), {
@@ -68,9 +67,9 @@ const Users = () => {
 
 	const filterUsers = (val) => {
 		const name = val.firstName + ' ' + val.lastName
-		let filteredName = name.includes(searchTerm.toLowerCase())
-		let filteredEmail = val.email.includes(searchTerm.toLowerCase())
-		let filteredLocation = val.location.includes(searchTerm.toLowerCase())
+		let filteredName = name.toLowerCase().includes(searchTerm.toLowerCase())
+		let filteredEmail = val.email.toLowerCase().includes(searchTerm.toLowerCase())
+		let filteredLocation = val.location.toLowerCase().includes(searchTerm.toLowerCase())
 
 		if (filteredName || filteredEmail || filteredLocation) return val
 	}
@@ -80,11 +79,13 @@ const Users = () => {
 		setdeleteModal(true)
 	}
 
-	const deleteUser = (user) => {
+	const deleteUser = () => {
 		const userDoc = doc(db, 'users', user.uid, 'recipients', userToUpdate.id)
 
-		deleteDoc(userDoc, user)
+		deleteDoc(userDoc, userToUpdate)
 		.then(setdeleteModal(false))
+		.then(setNewUser())
+		.then(onCloseModal())
 		.catch(error => console.log(error))
 	}
 
