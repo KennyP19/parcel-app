@@ -45,7 +45,7 @@ const Statistics = () => {
   return (
     <>
       {parcelData && <Graph1 parcelData={parcelData}/>}
-      {parcelData && <Graph2/>}
+      {parcelData && <Graph2 parcelData={parcelData}/>}
     </>
   )
 }

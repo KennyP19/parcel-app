@@ -21,25 +21,62 @@ export function getParsedDate(recievedDate, option = 'parcel') {
 
         return dateString
     }
-
 }
 
 export function getWeeklyData(date_days) {
-    let daily_data = {
-        Monday: 0,
-        Tuesday: 0,
-        Wednesday: 0,
-        Thursday: 0,
-        Friday: 0,
-        Saturday: 0,
-        Sunday: 0
-    }
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+    const daily_data = {}
+    days.map(day => daily_data[day] = 0)
+
+    const formatted_dates = []
 
     date_days.forEach(element => {
-        daily_data[element] += 1
+        let parsedDate = getParsedDate(element, 'stats_timestamp')
+        formatted_dates.push(parsedDate)
     });
 
-    return daily_data
+    const result = formatted_dates.reduce((acc, curr) => {
+        acc[curr] = (acc[curr] || 0) + 1 
+        return acc
+    }, {})
+
+    const peak = {}
+    const final_result = []
+
+    Object.keys(result).map(key => peak[new Date(key).getDay()] = (peak[new Date(key).getDay()] < result[key] ? result[key] : peak[new Date(key).getDay()] || result[key]))
+    Object.keys(peak).map(key => daily_data[days[key-1]] = peak[key])
+    Object.keys(daily_data).map(data => final_result.push(daily_data[data]))
+
+    return final_result  
+}
+
+export function getDailyData(dates) {
+    const hours = Array(24).fill(0)
+
+    const _dates = dates.reduce((res, date) => {
+        res.push({date: getParsedDate(date, 'stats_timestamp'), hour: date.toDate().getHours()})
+        return res
+    }, [])
+
+    const filtered_date = _dates.reduce((res, data) => {
+        res[JSON.stringify(data)] = (res[JSON.stringify(data)] || 0) + 1
+        return res
+    }, {})
+
+    const filtered_hours = Object.keys(filtered_date).reduce((res, data) => {
+        let parsed = JSON.parse(data)['hour']
+        res[parsed] = res[parsed] < filtered_date[data] ? filtered_date[data] : res[parsed] || filtered_date[data]
+        return res
+    } , {})
+    
+    Object.keys(filtered_hours).forEach(hour => {
+        hours[hour] = filtered_hours[hour]
+    });
+
+    return hours
+
+
 }
 
 // export function getStartDate(recievedDate) {
