@@ -18,11 +18,7 @@ function SignUp() {
     useEffect(() => {
         if (loading) return;
         if (user) {
-            setDoc(doc(db, "users", user.uid), {
-                fullname: username,
-                email: email,
-            }).then(navigate('/dashboard/overview'))
-            .catch(error => console.log(error))
+            navigate('/dashboard/statistics')
         };
     }, [user, loading, db, navigate]);
 
@@ -31,6 +27,11 @@ function SignUp() {
 		
         try {
             await createUserWithEmailAndPassword(auth, email, password)
+            setDoc(doc(db, "users", user.uid), {
+                companyName: username,
+                email: email,
+            })
+            .catch(error => console.log(error))
         }
         catch (e) {
             console.log(e)
@@ -44,12 +45,12 @@ function SignUp() {
             <div className = 'signin'>
                 <div className ='title'><h2>SIGN UP</h2></div>
                 <form onSubmit={register}>
-                    <label>Full Name</label>
+                    <label>Company Name</label>
                     <input className='sign-input' type={'text'} onChange={(e) => setUsername(e.target.value)}></input>
                     <label>Email </label>
                     <input className='sign-input' type={'text'} onChange={(e) => setEmail(e.target.value)}></input>
                     <label>Password </label>
-                    <input className='sign-input' type={'text'} onChange={(e) => setPassword(e.target.value)}></input>
+                    <input className='sign-input' type={'password'} onChange={(e) => setPassword(e.target.value)}></input>
                     <input className='sign-button' type={'submit'} value={'SIGN UP'}></input>
                 </form>
                 <div className='bottomFormButton'>

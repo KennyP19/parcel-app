@@ -15,7 +15,7 @@ function SignIn() {
     useEffect( (loading) => {
         if (loading) return 
 
-        if (user) navigate('/dashboard')
+        if (user) navigate('/dashboard/statistics')
     }, [loading, user, navigate]
     )
 
@@ -27,7 +27,6 @@ function SignIn() {
         catch (e) {
             console.log(e)
         }
-        console.log("bruh")
   }
 
   return (
@@ -38,7 +37,7 @@ function SignIn() {
                 <label>Email Address </label>
                 <input className='sign-input' type={'text'} onChange={(e) => setEmail(e.target.value)}></input>
                 <label>Password </label>
-                <input className='sign-input' type={'text'} onChange={(e) => setPassword(e.target.value)}></input>
+                <input className='sign-input' type={'password'} onChange={(e) => setPassword(e.target.value)}></input>
                 <input className='sign-button' type={'submit'} value={'LOGIN'}></input>
             </form>
             <div className='bottomFormButton'>

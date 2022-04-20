@@ -40,8 +40,6 @@ const Statistics = () => {
 		}
 	},[loading, user, db, error])
 
-  // const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
   return (
     <>
       {parcelData && <Graph1 parcelData={parcelData}/>}

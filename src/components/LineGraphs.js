@@ -117,14 +117,14 @@ export function Graph1({parcelData}) {
 }
 
 export function Graph2({parcelData}) {
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const hours = [...Array(24).keys()]
 
   const scanned_weekly = getWeeklyData(parcelData.map(val => val.dateRecieved))
-  const collected_weekly = getWeeklyData(parcelData.filter(data => data.status === 'collected').map(data => data.dateRecieved))
+  const collected_weekly = getWeeklyData(parcelData.filter(data => data.status === 'collected').map(data => data.dateCollected))
 
   const scanned_daily = getDailyData(parcelData.map(val => val.dateRecieved))
-  const collected_daily = getDailyData(parcelData.filter(data => data.status === 'collected').map(val => val.dateRecieved))
+  const collected_daily = getDailyData(parcelData.filter(data => data.status === 'collected').map(val => val.dateCollected))
 
   const [graphType, setgraphType] = useState('Weekly')
 

@@ -3,7 +3,7 @@ export function getParsedDate(recievedDate, option = 'parcel') {
     if (option === 'parcel') { 
         let date = recievedDate.toDate();
 
-        return String(date.getDate() + '/' + (date.getMonth()) + '/' + date.getFullYear() + " " + date.getHours() + ":" + (date.getMinutes()<10?'0':'') + date.getMinutes())
+        return String(date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + " " + date.getHours() + ":" + (date.getMinutes()<10?'0':'') + date.getMinutes())
     }
     else if (option === 'stats') {
         let date = new Date(recievedDate);
@@ -24,7 +24,7 @@ export function getParsedDate(recievedDate, option = 'parcel') {
 }
 
 export function getWeeklyData(date_days) {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
     const daily_data = {}
     days.map(day => daily_data[day] = 0)
@@ -35,7 +35,6 @@ export function getWeeklyData(date_days) {
         let parsedDate = getParsedDate(element, 'stats_timestamp')
         formatted_dates.push(parsedDate)
     });
-
     const result = formatted_dates.reduce((acc, curr) => {
         acc[curr] = (acc[curr] || 0) + 1 
         return acc
@@ -45,9 +44,9 @@ export function getWeeklyData(date_days) {
     const final_result = []
 
     Object.keys(result).map(key => peak[new Date(key).getDay()] = (peak[new Date(key).getDay()] < result[key] ? result[key] : peak[new Date(key).getDay()] || result[key]))
-    Object.keys(peak).map(key => daily_data[days[key-1]] = peak[key])
+    Object.keys(peak).map(key => daily_data[days[key]] = peak[key])
     Object.keys(daily_data).map(data => final_result.push(daily_data[data]))
-
+    
     return final_result  
 }
 

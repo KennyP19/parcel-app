@@ -19,6 +19,7 @@ const Parcels = () => {
 	const [user, loading, error] = useAuthState(auth);
 	const [parcels, setParcels] = useState([])
 	const [newParcel, setNewParcel] = useState(null)
+	const [recipient, setRecipient] = useState(null)
 
 	const [parcelToUpdate, setparcelToUpdate] = useState(null)
 	const [toEdit, setToEdit] = useState(false)
@@ -31,25 +32,23 @@ const Parcels = () => {
 		const parcelDate = new Date()
 		const timestamp = Timestamp.fromDate(parcelDate)
 		
-		const recipientEmail = await getUserData(recipientName, location)
+		const recipient = await getUserData(recipientName, location)
 
-		if (recipientEmail === '') return
+		if (recipient.recipientEmail === '') return
 
 		addDoc(parcelRef, {
 			recipientName: recipientName,
 			location: location,
 			dateRecieved: timestamp,
-			email: recipientEmail,
+			email: recipient.recipientEmail,
+			recipientId: recipient.recipientId,
 			status: 'waiting'
 		})
-		.then(docRef => setNewParcel({id: docRef.id, data: {recipientName: recipientName, location: location, dateRecieved: parcelDate, email: recipientEmail, status: 'waiting'}}))
+		.then(docRef => setNewParcel({id: docRef.id, data: {recipientName, location, dateRecieved: parcelDate, email: recipient.recipientEmail, status: 'waiting'}}))
 		.then(setOpenModal(false))
 	}
 
 	const getUserData = async(recipientName, location) => {
-
-		console.log(recipientName, location)
-
 		const recipientsRef = collection(db, 'users', user.uid, 'recipients')
 		const firstName = recipientName.split(' ')[0]
 		const lastName = recipientName.split(' ')[1]
@@ -58,8 +57,11 @@ const Parcels = () => {
 		try {
 			const docs = await getDocs(recipientQuery)
 			const recipientEmail = docs.docs[0].data().email
+			const recipientId = docs.docs[0].id
+			
+			setRecipient({recipientId, recipientEmail})
 
-			return recipientEmail
+			return {recipientEmail, recipientId}
 
 		} catch (error) {
 			console.log(error)
@@ -67,25 +69,15 @@ const Parcels = () => {
 		return ''
 	}
 
-	const createQR = () => {
-		QRCode.toDataURL(newParcel.id)
-		.then(url => {
-			sendEmail(url)
-		})
-		.catch(err => {
-			console.error(err)
-		})
-	}
-
-	const sendEmail = (qrCode) => {
-		console.log(qrCode)
+	const sendEmail = () => {
 		fetch('/send_email', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({data: qrCode, email: newParcel.data.email})
+			body: JSON.stringify({data: recipient.recipientId, email: recipient.recipientEmail})
 		})
 		.then(response => response.status)
 		.then(data => console.log(data))
+		.then(setRecipient(null))
 		.catch(setNewParcel(null))
 	}
 
@@ -93,7 +85,6 @@ const Parcels = () => {
 		const parcelDoc = doc(db, 'users', user.uid, 'parcels', parcelToUpdate.id)
 
 		updateDoc(parcelDoc, updatedParcel)
-		.then(setNewParcel(''))
 		.then(onCloseModal)
 		.catch(error => console.log(error))
 	}
@@ -128,8 +119,7 @@ const Parcels = () => {
 		
 		deleteDoc(parcelDoc, parcelToUpdate)
 		.then(setDeleteModal(false))
-		.then(setNewParcel(''))
-		.then(console.log(newParcel))
+		.then(setparcelToUpdate(null))
 		.catch(error => console.log(error))
 	}
 
@@ -154,10 +144,10 @@ const Parcels = () => {
 				
 				setParcels(docSnaps.docs.map((doc) => ({id: doc.id, ...doc.data()})))
 			}
-			getParcels()
-			newParcel && createQR()
+			!newParcel && getParcels()
+			recipient && sendEmail()
 		}
-	},[loading, user, db, newParcel, error])
+	},[loading, user, db, error, parcelToUpdate, recipient])
 	return (
 		<>
 			{openModal === true && <Modal closeModal={onCloseModal} modalType={'parcel'} action={(toEdit === false) ?  addParcel : updateParcel} data={parcelToUpdate} searchList={searchList}/>}
